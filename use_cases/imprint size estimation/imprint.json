@@ -1,0 +1,251 @@
+{
+  "enable": true,
+  "nodes": {
+    "read_gwyfile": {
+      "type": "read_gwyfile",
+      "category": "function",
+      "title": "read_gwyfile",
+      "externalImports": "import gwyfile\nimport numpy as np",
+      "codeGenerator": "function code(inputs, outputs, node, generator) {  \r\n  const code = `obj = gwyfile.load(${inputs[1]})\r\nchannels = gwyfile.util.get_datafields(obj)\r\nintensity = channels['Intensity'].data\r\n${outputs[1]} = np.interp(intensity, (intensity.min(), intensity.max()), (0, 255))\r\nheight = channels['Height'].data\r\n${outputs[2]}= np.interp(height, (height.min(), height.max()), (0, 255))\r\n${outputs[3]} = channels['Height']['xreal'] * 10**6 / channels['Height']['xres']\r\n${outputs[0]}`;\r\n  return code;\r\n}",
+      "inputs": {
+        "execIn": {
+          "title": "execIn",
+          "tooltip": "execIn",
+          "dataType": "exec",
+          "showWidget": false,
+          "showTitle": false
+        },
+        "path": {
+          "title": "path",
+          "dataType": "string",
+          "tooltip": "path(str) - path of the JPEG or PNG image."
+        }
+      },
+      "outputs": {
+        "execOut": {
+          "title": "execOut",
+          "tooltip": "execOut",
+          "dataType": "exec",
+          "showWidget": false,
+          "showTitle": false
+        },
+        "intensity": {
+          "title": "intensity",
+          "dataType": "anyDataType",
+          "tooltip": "{dataType: torch.tensor, value, layout: [chw], colorMode: [rgb, grayscale], intensityRange: 0-255' device: cpu}"
+        },
+        "height": {
+          "title": "height",
+          "dataType": "anyDataType",
+          "tooltip": "{dataType: torch.tensor, value, layout: [chw], colorMode: [rgb, grayscale], intensityRange: 0-255' device: cpu}"
+        },
+        "micrometer_per_pixel": {
+          "title": "micrometer per pixel",
+          "dataType": "float",
+          "tooltip": "{dataType: torch.tensor, value, layout: [chw], colorMode: [rgb, grayscale], intensityRange: 0-255' device: cpu}"
+        }
+      }
+    },
+    "gaussian": {
+      "type": "gaussian",
+      "category": "function",
+      "title": "gaussian",
+      "externalImports": "from skimage.filters import gaussian",
+      "codeGenerator": "function code(inputs, outputs, node, generator) {  \r\n  const code = `${outputs[1]} = gaussian(${inputs[1]}, sigma=${inputs[2]})\r\n${outputs[0]}`;\r\n  return code;\r\n}",
+      "inputs": {
+        "execIn": {
+          "title": "execIn",
+          "dataType": "exec",
+          "showWidget": false,
+          "showTitle": false
+        },
+        "image": {
+          "title": "image",
+          "dataType": "anyDataType"
+        },
+        "sigma": {
+          "title": "sigma",
+          "dataType": "float",
+          "defaultValue": "1.2"
+        }
+      },
+      "outputs": {
+        "execOut": {
+          "title": "execOut",
+          "dataType": "exec",
+          "showWidget": false,
+          "showTitle": false
+        },
+        "outputImage": {
+          "title": "image",
+          "dataType": "anyDataType",
+          "tooltip": "Cropped image in the specified region."
+        }
+      }
+    },
+    "enhancment": {
+      "type": "enhancment",
+      "category": "function",
+      "title": "enhancment",
+      "externalImports": "from PIL import ImageEnhance, Image",
+      "codeGenerator": "function code(inputs, outputs, node, generator) {  \r\n  const code = `img = Image.fromarray(${inputs[1]}.astype('uint8'))\r\nenhancer = ImageEnhance.Contrast(img)\r\n${outputs[1]} = enhancer.enhance(2)\r\n${outputs[0]}`;\r\n  return code;\r\n}",
+      "inputs": {
+        "execIn": {
+          "title": "execIn",
+          "dataType": "exec",
+          "showWidget": false,
+          "showTitle": false
+        },
+        "image": {
+          "title": "image",
+          "dataType": "anyDataType"
+        },
+        "factor": {
+          "title": "factor",
+          "dataType": "float",
+          "defaultValue": "0"
+        }
+      },
+      "outputs": {
+        "execOut": {
+          "title": "execOut",
+          "dataType": "exec",
+          "showWidget": false,
+          "showTitle": false
+        },
+        "outputImage": {
+          "title": "image",
+          "dataType": "anyDataType",
+          "tooltip": "Cropped image in the specified region."
+        }
+      }
+    },
+    "isodata_binarize": {
+      "type": "isodata_binarize",
+      "category": "function",
+      "title": "isodata_binarize",
+      "externalImports": "from skimage.filters import threshold_isodata",
+      "codeGenerator": "function code(inputs, outputs, node, generator) {  \r\n  const code = `threshold = threshold_isodata(np.asarray(${inputs[1]}))\r\n${outputs[1]} =(${inputs[1]} > threshold).astype(int)\r\n${outputs[0]}`;\r\n  return code;\r\n}",
+      "inputs": {
+        "execIn": {
+          "title": "execIn",
+          "dataType": "exec",
+          "showWidget": false,
+          "showTitle": false
+        },
+        "image": {
+          "title": "image",
+          "dataType": "anyDataType",
+          "tooltip": "Input image."
+        }
+      },
+      "outputs": {
+        "execOut": {
+          "title": "execOut",
+          "dataType": "exec",
+          "showWidget": false,
+          "showTitle": false
+        },
+        "outputImage": {
+          "title": "image",
+          "dataType": "anyDataType",
+          "tooltip": "Cropped image in the specified region."
+        }
+      }
+    },
+    "find_contours": {
+      "type": "find_contours",
+      "category": "function",
+      "title": "find_contours",
+      "externalImports": "from skimage import measure",
+      "codeGenerator": "function code(inputs, outputs, node, generator) {  \r\n  const code = `${outputs[1]} = measure.find_contours(${inputs[1]}, 0.7)\r\n${outputs[0]}`;\r\n  return code;\r\n}",
+      "inputs": {
+        "execIn": {
+          "title": "execIn",
+          "dataType": "exec",
+          "showWidget": false,
+          "showTitle": false
+        },
+        "image": {
+          "title": "image",
+          "dataType": "anyDataType",
+          "tooltip": "input image tensor with shape (B, C, H, W) and intensity from [0, 1]."
+        }
+      },
+      "outputs": {
+        "execOut": {
+          "title": "execOut",
+          "dataType": "exec",
+          "showWidget": false,
+          "showTitle": false
+        },
+        "contours": {
+          "title": "contours",
+          "dataType": "anyDataType"
+        }
+      }
+    },
+    "contours_size": {
+      "type": "contours_size",
+      "category": "math",
+      "title": "contours_size",
+      "externalImports": "from skimage import measure",
+      "codeGenerator":"function code(inputs, outputs, node, generator) {\r\n const code = `def polygon_area(x, y):\r\n    return 0.5 * np.abs(np.dot(x, np.roll(y, 1))-np.dot(y, np.roll(x, 1)))\r\nareas = []\r\nfor contour in ${inputs[0]}:\r\n    area = polygon_area(contour[:, 0], contour[:, 1])\r\n    areas.append(area)\r\n${outputs[0]} = areas`;\r\n  return code;\r\n}",
+      "inputs": {
+        "contour": {
+          "title": "props",
+          "dataType": "anyDataType",
+          "showWidget": false
+        }
+      },
+      "outputs": {
+        "sizes": {
+          "title": "sizes",
+          "dataType": "anyDataType",
+          "showWidget": false,
+          "showTitle": false
+        }
+      }
+    },
+    "pixel to physical unit": {
+      "type": "pixel to physical unit",
+      "category": "function",
+      "title": "pixel to physical unit",
+      "externalImports": "",
+      "codeGenerator": "function code(inputs, outputs, node, generator) {\r\n  let code = ''\r\n  if (inputs[2] == \"True\")\r\n     code = `${outputs[1]} = [size * ${inputs[3]} * ${inputs[3]} for size in ${inputs[1]}]\r\n${outputs[0]}`;\r\n  else\r\n    code = `${outputs[1]} =[size * ${inputs[3]}} for size in ${inputs[1]}]\r\n${outputs[0]}`;\r\n  return code;\r\n}",
+      "inputs": {
+        "execIn": {
+          "title": "execIn",
+          "dataType": "exec",
+          "showWidget": false,
+          "showTitle": false
+        },
+        "data in pixel": {
+          "title": "in pixel",
+          "dataType": "float"
+        },
+        "is_area": {
+          "title": "is_area",
+          "dataType": "boolean"
+        },
+        "micrometer per pixel": {
+          "title": "micrometer per pixel",
+          "dataType": "float"
+        }
+      },
+      "outputs": {
+        "execOut": {
+          "title": "execOut",
+          "dataType": "exec",
+          "showWidget": false,
+          "showTitle": false
+        },
+        "in_physical_unit": {
+          "title": "in_physical_unit",
+          "dataType": "float"
+        }
+      }
+    }
+   
+  }
+}
